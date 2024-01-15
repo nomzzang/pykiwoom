@@ -6,10 +6,6 @@ print("로그인 완료")
 
 
 
-
-
-
-
 #테마코드에 속해있는 종목의 코드를 불러오는 코드 ex)['010060', '004000', '009830', '052420']
 # data = kiwoom.GetThemeGroupCode('100')
 # print(data)
