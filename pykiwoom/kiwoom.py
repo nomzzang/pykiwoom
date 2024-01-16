@@ -7,6 +7,8 @@ class Kiwoom:
     def __init__(self):
         self.ocx = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
         self.ocx.OnEventConnect.connect(self._handler_login)
+        self.ocx.OnReceiveTrData.connect(self._handler_tr)
+
 
     def CommConnect(self):
         self.ocx.dynamicCall("CommConnect()")
@@ -89,7 +91,18 @@ class Kiwoom:
         self.tr_loop = QEventLoop()
         self.tr_loop.exec()
 
-        
+    def GetCommData(self, trcode, rqname, index, item):
+        data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, index, item)
+        return data.strip()
 
-    
+    def _handler_tr(self, screen, rqname, trcode, record, next):
+        self.tr_data = {}
+
+        per = self.GetCommData(trcode, rqname, 0, "PER")
+        pbr = self.GetCommData(trcode, rqname, 0, "PBR")
+        self.tr_data["PER"] = per
+        self.tr_data["PBR"] = pbr 
+
+        self.tr_loop.exit()
+
 app = QApplication(sys.argv)
