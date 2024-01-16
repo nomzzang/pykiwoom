@@ -81,6 +81,15 @@ class Kiwoom:
 
         return result
 
+    def SetInputValue(self, item, value):
+        self.ocx.dynamicCall("SetInputValue(QStirng, QString)", item, value)
+
+    def CommRqData(self, rqname, trcode, next, screen):
+        self.ocx.dynamicCall("CommRqData(QString, QString, int, QString)", rqname, trcode, next, screen)
+        self.tr_loop = QEventLoop()
+        self.tr_loop.exec()
+
+        
 
     
 app = QApplication(sys.argv)
