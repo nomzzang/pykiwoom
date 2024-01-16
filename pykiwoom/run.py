@@ -4,6 +4,8 @@ kiwoom = Kiwoom()
 kiwoom.CommConnect()
 print("로그인 완료")
 
+
+
 # TR (opt10001)
 kiwoom.SetInputValue("종목코드", "005930")
 kiwoom.CommRqData("opt10001", "opt10001", 0, "0101") # 화면 번호 "0000"은 제외
