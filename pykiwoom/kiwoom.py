@@ -2,6 +2,8 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import *
+from pandas import DataFrame
+import datetime
 
 class Kiwoom:
     def __init__(self):
@@ -94,9 +96,27 @@ class Kiwoom:
     def GetCommData(self, trcode, rqname, index, item):
         data = self.ocx.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, index, item)
         return data.strip()
+    
+    def GetRepeatCnt(self, trcode, rqname):
+        ret = self.ocx.dynamicCall("GetRepeatCnt(QString, QStirng)", trcode, rqname)
+        return ret
 
     def _handler_tr(self, screen, rqname, trcode, record, next):
+        if next == '2':
+            self.remained = True
+        else:
+            self.remained = False
+        
         self.tr_data = {}
+
+        #TR 데이터 가져가기 
+        if rqname == "opt10081":
+            self._opt10081(rqname, trcode)
+
+            try:
+                self.tr_loop.exit()
+            except:
+                pass
 
         per = self.GetCommData(trcode, rqname, 0, "PER")
         pbr = self.GetCommData(trcode, rqname, 0, "PBR")
@@ -104,5 +124,26 @@ class Kiwoom:
         self.tr_data["PBR"] = pbr 
 
         self.tr_loop.exit()
+
+    def _opt10081(self, rqname, trcode):
+        data = []
+        columns = ["시가", "고가", "저가", "종가", "거래량"]
+        index = []
+        rows = self.GetRepeatCnt(trcode, rqname)
+
+        for i in range(rows):
+            date = self.GetCommData(trcode, rqname, i, "일자")
+            open = self.GetCommData(trcode, rqname, i, "시가")
+            high = self.GetCommData(trcode, rqname, i, "고가")
+            low = self.GetCommData(trcode, rqname, i, "저가")
+            close = self.GetCommData(trcode, rqname, i, "현재가")
+            volume = self.GetCommData(trcode, rqname, i, "거래량")
+
+            dt = datetime.datetime.strptime(date, "%Y%m%d")
+            index.append(dt)
+            data.append((open, high, low, close, volume))
+        
+        self.tr_data = DataFrame(data=data, index=index, columns=columns)
+
 
 app = QApplication(sys.argv)

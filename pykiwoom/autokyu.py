@@ -45,7 +45,7 @@ class MyWindow(QMainWindow):
         self.ocx.dynamicCall("CommConnect()")
 
     def _handler_login(self, err_code):
-        print("handler login", err_code);
+        print("handler login", err_code)
 
     def _handler_condition_load(self, ret, msg):
         print("handler condition load", ret, msg)
