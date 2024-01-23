@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 import pandas as pd
 from datetime import datetime
+from PyQt5.QtCore import QTimer, QTime
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -12,6 +13,11 @@ class MyWindow(QMainWindow):
 
         self.data_to_save = []
         self.seen_codes = set()  # Initialize an empty set to track seen codes
+
+        #Timer setup 
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.check_time)
+        self.timer.start(60000)
 
         self.ocx = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
         self.ocx.OnEventConnect.connect(self._handler_login)
@@ -31,7 +37,7 @@ class MyWindow(QMainWindow):
         self.setCentralWidget(widget)
         # Save Button
         save_btn = QPushButton("Save to Excel")
-        save_btn.clicked.connect(self.save_to_excel)
+        save_btn.clicked.connect(self.save_to_csv)
 
         # Adding to layout
         layout.addWidget(save_btn)  # Assuming 'layout' is your QVBoxLayout
@@ -59,11 +65,15 @@ class MyWindow(QMainWindow):
                 self.data_to_save.append([current_time, cond_name, stock_name, type])  # Save stock name instead of code
                 self.seen_codes.add(code)
                 
-    def save_to_excel(self):
+    def save_to_csv(self):
+        #Format current date as YYYYMMDD
+        date_str = datetime.now().strftime("%Y%m%d")
+        filename = f'Auto_kyu_{date_str}.csv'
+
         # Assuming the columns are 'Time', 'Condition Name', 'Code', 'Type'
         df = pd.DataFrame(self.data_to_save, columns=['Time', 'Condition Name', 'Code', 'Type'])
-        df.to_excel('filtered_data.xlsx', index=False)
-        print("Data saved to Excel.")
+        df.to_csv(filename, index=False, encoding='utf-8-sig')
+        print(f"Data saved to CSV as {filename}.")
 
     def GetConditionLoad(self):
         self.ocx.dynamicCall("GetConditionLoad()")
@@ -88,6 +98,12 @@ class MyWindow(QMainWindow):
     def GetMasterCodeName(self, code):
         data = self.ocx.dynamicCall("GetMasterCodeName(QString)",code)
         return data
+    
+    def check_time(self):
+        #Check if current time is 09:30
+        if QTime.currentTime().toString("HH:mm") == "09:30":
+            self.save_to_csv()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
