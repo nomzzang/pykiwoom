@@ -10,7 +10,8 @@ class Kiwoom:
         self.ocx = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
         self.ocx.OnEventConnect.connect(self._handler_login)
         self.ocx.OnReceiveTrData.connect(self._handler_tr)
-
+        self.ocx.OnReceiveChejanData.connect(self._handler_chejan)
+        self.ocx.OnReceiveMsg.connect(self._handler_msg)
 
     def CommConnect(self):
         self.ocx.dynamicCall("CommConnect()")
@@ -144,6 +145,21 @@ class Kiwoom:
             data.append((open, high, low, close, volume))
         
         self.tr_data = DataFrame(data=data, index=index, columns=columns)
+
+    def SendOrder(self, rqname, screen, accno, order_type, code, quantity, price, hoga, order_no):
+        self.oxc.dynamicCall("SendOrder(QString, QString, QString, int, QString, int, int, QString, QString)",
+                             [rqname, screen, accno, order_type, code, quantity, price, hoga, order_no])
+
+        #이벤트 루프가 필요한 경우에만 사용
+        #시장가 주문의 경우 이벤트 루프가 필요없음
+        self.order_loop = QEventLoop()
+        self.order_loop.exec()
+
+    def _handler_chejan(self, gubun, item_cnt, fid_list):
+        print("OnReceiveChejanData", gubun, item_cnt, fid_list)
+    
+    def _handler_msg(self, screen, rqname, trcode, msg):
+        print("OnReceiveMsg: ", screen, rqname, trcode, msg)
 
 
 app = QApplication(sys.argv)

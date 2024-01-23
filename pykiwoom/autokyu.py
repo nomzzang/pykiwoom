@@ -82,14 +82,12 @@ class MyWindow(QMainWindow):
         ret = self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", screen, cond_name, cond_index)
 
     def send_condition(self):
-        self.SendCondition("100", "2.3%+거래대금(30)", "043", 1)
+        self.SendCondition("100", "Auto_kyu", "047", 1)
 
     #코드 -> 종목이름
     def GetMasterCodeName(self, code):
         data = self.ocx.dynamicCall("GetMasterCodeName(QString)",code)
         return data
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
