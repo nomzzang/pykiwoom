@@ -62,19 +62,20 @@ class MyWindow(QMainWindow):
             print(cond_name, code, stock_name, type, current_time)
 
             if type == 'I' and code not in self.seen_codes:
-                self.data_to_save.append([current_time, cond_name, stock_name, type])  # Save stock name instead of code
+                self.data_to_save.append([current_time, code, stock_name])  # Save stock name instead of code
                 self.seen_codes.add(code)
                 
     def save_to_csv(self):
-        #Format current date as YYYYMMDD
+        # Format current date as YYYYMMDD
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f'Auto_kyu_{date_str}.csv'
+        filename = f'filtered_data_{date_str}.csv'
 
-        # Assuming the columns are 'Time', 'Condition Name', 'Code', 'Type'
-        df = pd.DataFrame(self.data_to_save, columns=['Time', 'Condition Name', 'Code', 'Type'])
+        # Select only 'Time', 'Code', and 'Item Name' columns
+        df = pd.DataFrame(self.data_to_save, columns=['Time', 'Code', 'Item Name'])
+        df = df[['Time', 'Code', 'Item Name']]  # Reorder if necessary
+
         df.to_csv(filename, index=False, encoding='utf-8-sig')
-        print(f"Data saved to CSV as {filename}.")
-
+        
     def GetConditionLoad(self):
         self.ocx.dynamicCall("GetConditionLoad()")
 

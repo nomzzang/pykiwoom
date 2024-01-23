@@ -12,6 +12,8 @@ class Kiwoom:
         self.ocx.OnReceiveTrData.connect(self._handler_tr)
         self.ocx.OnReceiveChejanData.connect(self._handler_chejan)
         self.ocx.OnReceiveMsg.connect(self._handler_msg)
+        self.ocx.OnReceiveConditionVer.connect(self._handler_condition_load)
+        self.ocx.OnReceiveTrCondition.connect(self._handler_tr_condition)
 
     def CommConnect(self):
         self.ocx.dynamicCall("CommConnect()")
@@ -161,5 +163,39 @@ class Kiwoom:
     def _handler_msg(self, screen, rqname, trcode, msg):
         print("OnReceiveMsg: ", screen, rqname, trcode, msg)
 
+    #조건식 로드
+    def GetConditionLoad(self):
+        self.ocx.dynamicCall("GetConditionLoad()")
+
+        #사용자 조건식 저장 이벤트까지 대기
+        self.condition_load_loop = QEventLoop()
+        self.condition_load_loop.exec()
+
+    def _handler_condition_load(self, ret, msg):
+        print("OnReceiveConditionVer: ", ret, msg)
+        self.condition_load_loop.exit()
+
+    def GetConditionNameList(self):
+        data = self.ocx.dynamicCall("GetConditionNameList()")
+        conditions = data.split(";")[:-1]
+
+        ret = []
+        for condition in conditions:
+            index, name = condition.split('^')
+            ret.append((index, name))
+        return ret
+    
+    def SendCondition(self, screen, cond_name, cond_index, search):
+        ret = self.ocx.dynamicCall("SendCondition(QString, QString, int, int)", screen, cond_name, cond_index, search)
+
+        #event loop
+        self.condition_tr_loop = QEventLoop()
+        self.condition_tr_loop.exec()
+
+    def _handler_tr_condition(self, screen, codelist, cond_name, cond_index, next):
+        codes = codelist.split(';')
+        self.condition_codes = codes[:-1]
+
+        self.condition_tr_loop.exit()
 
 app = QApplication(sys.argv)
