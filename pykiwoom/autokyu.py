@@ -68,7 +68,7 @@ class MyWindow(QMainWindow):
     def save_to_csv(self):
         # Format current date as YYYYMMDD
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f'filtered_data_{date_str}.csv'
+        filename = f'Auto_kyu_{date_str}.csv'
 
         # Select only 'Time', 'Code', and 'Item Name' columns
         df = pd.DataFrame(self.data_to_save, columns=['Time', 'Code', 'Item Name'])
