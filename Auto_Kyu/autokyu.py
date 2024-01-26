@@ -1,4 +1,6 @@
 import sys
+import os
+import csv
 from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 import pandas as pd
@@ -62,19 +64,23 @@ class MyWindow(QMainWindow):
             print(cond_name, code, stock_name, type, current_time)
 
             if type == 'I' and code not in self.seen_codes:
-                self.data_to_save.append([current_time, code, stock_name])  # Save stock name instead of code
+                self.data_to_save.append([code, stock_name, current_time])  # Save stock name instead of code
+                # self.data_to_save.append([code, stock_name, current_time  ])  # Save stock name instead of code
                 self.seen_codes.add(code)
                 
     def save_to_csv(self):
         # Format current date as YYYYMMDD
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f'Auto_kyu_{date_str}.csv'
+        path = os.path.join(os.path.dirname(__file__), "result")
+
+        os.makedirs(path, exist_ok=True)
+        filename = os.path.join(path, f'Auto_Kyu_{date_str}.csv')
 
         # Select only 'Time', 'Code', and 'Item Name' columns
-        df = pd.DataFrame(self.data_to_save, columns=['Time', 'Code', 'Item Name'])
-        df = df[['Time', 'Code', 'Item Name']]  # Reorder if necessary
+        df = pd.DataFrame(self.data_to_save, columns=['코드', '종목명', '조건만족시간'])
+        df['코드'] = df['코드'].astype(str).str.zfill(6)
 
-        df.to_csv(filename, index=False, encoding='utf-8-sig')
+        df.to_csv(filename, index=False, encoding='utf-8-sig', quoting=csv.QUOTE_NONNUMERIC)
         
     def GetConditionLoad(self):
         self.ocx.dynamicCall("GetConditionLoad()")
@@ -93,7 +99,7 @@ class MyWindow(QMainWindow):
         ret = self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", screen, cond_name, cond_index)
 
     def send_condition(self):
-        self.SendCondition("100", "Auto_kyu", "047", 1)
+        self.SendCondition("100", "메인", "002", 1)
 
     #코드 -> 종목이름
     def GetMasterCodeName(self, code):
