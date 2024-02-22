@@ -1,11 +1,14 @@
 import sys
 import os
 import csv
+import datetime
 from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 import pandas as pd
 from datetime import datetime
 from PyQt5.QtCore import QTimer, QTime
+from pykiwoom.kiwoom import *
+
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -30,6 +33,7 @@ class MyWindow(QMainWindow):
         btn1 = QPushButton("condition down")
         btn2 = QPushButton("condition list")
         btn3 = QPushButton("condition send")
+        save_btn = QPushButton("Save to Excel")
 
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -37,9 +41,7 @@ class MyWindow(QMainWindow):
         layout.addWidget(btn2)
         layout.addWidget(btn3)
         self.setCentralWidget(widget)
-        # Save Button
-        save_btn = QPushButton("Save to Excel")
-        save_btn.clicked.connect(self.save_to_csv)
+
 
         # Adding to layout
         layout.addWidget(save_btn)  # Assuming 'layout' is your QVBoxLayout
@@ -48,6 +50,7 @@ class MyWindow(QMainWindow):
         btn1.clicked.connect(self.GetConditionLoad)
         btn2.clicked.connect(self.GetConditionNameList)
         btn3.clicked.connect(self.send_condition)
+        save_btn.clicked.connect(self.save_to_csv)
 
     def CommConnect(self):
         self.ocx.dynamicCall("CommConnect()")
@@ -59,7 +62,7 @@ class MyWindow(QMainWindow):
         print("handler condition load", ret, msg)
 
     def _handler_real_condition(self, code, type, cond_name, cond_index):
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             stock_name = self.GetMasterCodeName(code)  # Convert code to stock name
             print(cond_name, code, stock_name, type, current_time)
 
@@ -70,7 +73,7 @@ class MyWindow(QMainWindow):
                 
     def save_to_csv(self):
         # Format current date as YYYYMMDD
-        date_str = datetime.now().strftime("%Y%m%d")
+        date_str = datetime.datetime.now().strftime("%Y%m%d")
         path = os.path.join(os.path.dirname(__file__), "result")
 
         os.makedirs(path, exist_ok=True)
@@ -79,8 +82,8 @@ class MyWindow(QMainWindow):
         # Select only 'Time', 'Code', and 'Item Name' columns
         df = pd.DataFrame(self.data_to_save, columns=['코드', '종목명', '조건만족시간'])
         df['코드'] = df['코드'].astype(str).str.zfill(6)
-
         df.to_csv(filename, index=False, encoding='utf-8-sig', quoting=csv.QUOTE_NONNUMERIC)
+        print("save_to_csv")
         
     def GetConditionLoad(self):
         self.ocx.dynamicCall("GetConditionLoad()")
@@ -94,12 +97,13 @@ class MyWindow(QMainWindow):
 
     def SendCondition(self, screen, cond_name, cond_index, search):
         ret = self.ocx.dynamicCall("SendCondition(QString, QString, int, int)", screen, cond_name, cond_index, search)
+        print(cond_name, cond_index)
 
     def SendConditionStop(self, screen, cond_name, cond_index):
         ret = self.ocx.dynamicCall("SendConditionStop(QString, QString, int)", screen, cond_name, cond_index)
 
     def send_condition(self):
-        self.SendCondition("100", "메인", "002", 1)
+        self.SendCondition("100", "Auto_kyu", "047", 1)
 
     #코드 -> 종목이름
     def GetMasterCodeName(self, code):
